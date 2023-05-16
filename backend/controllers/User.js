@@ -3,13 +3,17 @@ const bcrypt = require( "bcrypt");
 
 const User = require( "../models/User.js");
 
-export const registerUser = async (req, res) => {
+ const registerUser = async (req, res) => {
    
 
     try{
         //get values= require( request data
-        const {formData} = req.body;
-        const {username, password} = formData;
+        console.log(req.body);
+
+
+        const userData = req.body;
+
+        const {username, password} = userData;
         
         //error: missing request data
         if(!username || !password){
@@ -30,9 +34,12 @@ export const registerUser = async (req, res) => {
                 password: hashedPassword,
             });
 
+            //data you want to send back goes in here
+            const userData = {username: newUser.username, id: newUser._id}
+
             //generates a token based on the user's id and sends it in response
             const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET);
-            res.json({token, user: newUser, message: "Succsessfully registered user!"});
+            res.json({token, user: userData, message: "Succsessfully registered user!"});
         }
 
     }catch(error){
@@ -43,7 +50,7 @@ export const registerUser = async (req, res) => {
    
 };
 
-export const getUser = async (req, res) => {
+ const getUser = async (req, res) => {
     try {
 
         const token = req.headers.authorization.split(" ")[1]; // Extract token= require( Authorization header
@@ -64,7 +71,7 @@ export const getUser = async (req, res) => {
       }
 }
 
-export const loginUser = async (req, res) => {
+ const loginUser = async (req, res) => {
     const {username, password} = req.body;
 
     const user = await User.findOne({username});
@@ -79,16 +86,19 @@ export const loginUser = async (req, res) => {
         return res.json({error: "Incorrect username or password!"});
     }
 
+    //data you want to send back goes in here
+    const userData = {username: user.username, id: user._id};
+
     //generates a token based on the user's id and sends it in response
     const token = jwt.sign({id: user._id}, process.env.JWT_SECRET);
 
-    res.json({token, user: user});
+    res.json({token, user: userData});
 
 };
 
 
 
-export const verifyToken = (req, res, next) => {
+ const verifyToken = (req, res, next) => {
     
     // Extract token= require( the header
     const token = req.headers.authorization.split(' ')[1];
@@ -103,3 +113,5 @@ export const verifyToken = (req, res, next) => {
     // JsonWebTokenError: invalid signature
     }
 }
+
+module.exports = {verifyToken, getUser, loginUser, registerUser}
