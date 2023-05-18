@@ -5,7 +5,6 @@ const User = require( "../models/User.js");
 
  const registerUser = async (req, res) => {
    
-
     try{
         //get values= require( request data
         console.log(req.body);
