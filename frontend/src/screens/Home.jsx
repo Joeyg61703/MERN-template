@@ -2,6 +2,7 @@ import React, { useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { AuthContext } from '../contexts'
 
+import {Button} from "@mui/material"
 const Home = () => {
     const {isLoggedIn, user, logout} = useContext(AuthContext);
 
@@ -11,7 +12,7 @@ const Home = () => {
         <div>
           <h1>You are Logged In</h1>
           <h1>{user.username}</h1>
-          <button onClick={()=>{logout()}}>Logout</button>
+          <Button variant="contained" onClick={()=>{logout()}}>Logout</Button>
         </div>
       )
     }
