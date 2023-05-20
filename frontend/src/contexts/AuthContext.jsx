@@ -2,41 +2,34 @@ import React, { createContext, useEffect, useState } from 'react';
 import api from '../api';
 import { useNavigate } from 'react-router-dom';
 
-export const AuthContext = createContext();
+export const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    const fetchUser = async () => {
-      let user = null;
-      try{
-        const response = await api.get("/auth/user");
-        user = response.data.user;
 
-      }catch(error){
-        console.log("Failed to fetch user.");
-        console.error(error);
-      }finally{
-        return user;
-      }
-      
-    }
-    const token = localStorage.getItem("token");
-    if(token && !user){
-      const fetchedUser = fetchUser();
-      setUser(fetchedUser);
-    }
-  }, [user]); 
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+
+  const [isLoggedIn, setIsLoggedIn] = useState(!!user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log("User:", user);
+  }, [])
+  
 
   const register = async (userData) => {
     try{
       const response = await api.post("/auth/register", userData);
+
+      console.log(response)
       const user = response.data.user;
+      const token = response.data.token;
       setIsLoggedIn(true);
       setUser(user);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
       navigate('/');
     }catch(error){
       console.error(error);
@@ -47,8 +40,11 @@ export const AuthProvider = ({ children }) => {
     try{
       const response = await api.post("/auth/login", userData);
       const user = response.data.user;
+      const token = response.data.token;
       setIsLoggedIn(true);
       setUser(user);
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
       navigate('/');
     }catch(error){
       console.error(error);
@@ -56,7 +52,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {   
-    localStorage.setItem("token", null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setIsLoggedIn(false);
     setUser(null);
     navigate('/');

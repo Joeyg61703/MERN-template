@@ -12,17 +12,20 @@ const User = require( "../models/User.js");
 
         const userData = req.body;
 
-        const {username, password} = userData;
+        const {username, email, password} = userData;
         
         //error: missing request data
-        if(!username || !password){
-            res.status(422).json({error: "Username and password required"});
+        if(!username || !password || !email){
+            res.status(422).json({error: "All fields required."});
         }else{
-            const user = await User.findOne({username});          
+            const userWithEmail = await User.findOne({email});          
+            const userWithName = await User.findOne({username});
 
-            //error: user exists
-            if(user){
-                return res.status(409).json({error: "User already exists."})
+            //User Alreadt Exists (cannot create new user)
+            if(userWithEmail){
+                return res.status(409).json({error: "A user with that email already exists."})
+            }else if(userWithName){
+                return res.status(409).json({error: "A user with that name already exists."})
             }
 
             //encrypts password with a salt of 10
@@ -30,11 +33,13 @@ const User = require( "../models/User.js");
 
             const newUser = await User.create({
                 username:  username,
+                email: email,
                 password: hashedPassword,
             });
 
-            //data you want to send back goes in here
-            const userData = {username: newUser.username, id: newUser._id}
+            //user data sent back to the client
+            const userData = {username: newUser.username, id: newUser._id, email: newUser.email, preferences: newUser.preferences}
+
 
             //generates a token based on the user's id and sends it in response
             const token = jwt.sign({id: newUser._id}, process.env.JWT_SECRET);
@@ -53,15 +58,24 @@ const User = require( "../models/User.js");
     try {
 
         const token = req.headers.authorization.split(" ")[1]; // Extract token= require( Authorization header
+
+        console.log(token)
+
+        //gets user ID from client's token
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        
+        console.log(decodedToken)
+        
         const userId = decodedToken.id;
         const user = await User.findById(userId);
         
         console.log(user);
 
-        const {_id, username} = user;
+        const {_id, username, email, preferences} = user;
+
+        //if the user is found via token send user data back
         if (user) {
-          return res.status(200).json({_id, username});
+          return res.status(200).json({user: {_id, username, email, preferences}});
         } else {
           return res.status(400).json({error: "Authentication Error: User Does Not Exist"});
         }
@@ -71,10 +85,11 @@ const User = require( "../models/User.js");
 }
 
  const loginUser = async (req, res) => {
-    const {username, password} = req.body;
+    const {email, password} = req.body;
 
-    const user = await User.findOne({username});
+    const user = await User.findOne({email});
 
+    //a user with the email entered could not be found
     if(!user){
         return res.status(400).json({error: "User does not exist!"});
     }
@@ -82,11 +97,11 @@ const User = require( "../models/User.js");
     const validPassword = await bcrypt.compare(password, user.password);
 
     if(!validPassword){
-        return res.json({error: "Incorrect username or password!"});
+        return res.json({error: "Incorrect password!"});
     }
 
     //data you want to send back goes in here
-    const userData = {username: user.username, id: user._id};
+    const userData = {email: user.email, username: user.username, id: user._id, preferences: user.preferences};
 
     //generates a token based on the user's id and sends it in response
     const token = jwt.sign({id: user._id}, process.env.JWT_SECRET);

@@ -19,6 +19,11 @@ const Register = () => {
     })
   }
 
+  const onSubmit = (e, userData) => {
+    e.preventDefault();
+    register(userData);
+  }
+
   function Copyright(props) {
     return (
       <Typography variant="body2" color="text.secondary" align="center" {...props}>
@@ -49,17 +54,23 @@ const Register = () => {
           <Typography component="h1" variant="h5">
             Sign up
           </Typography>
-          <Box component="form" noValidate onSubmit={()=>register(userData)} sx={{ mt: 3 }}>
+          <Box component="form" noValidate onSubmit={(e)=>{onSubmit(e, userData)}} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
                   autoComplete="given-name"
                   name="userName"
+                  InputLabelProps={{
+                    style: {
+                      color: 'white', // Change the label color
+                    },
+                  }}
                   required
                   fullWidth
                   id="userName"
                   label="User Name"
                   autoFocus
+                  onChange={(e)=>onChange(e.target.value, "username")}
                 />
               </Grid>
              
@@ -71,7 +82,7 @@ const Register = () => {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
-                  onChange={(e)=>onChange(e.target.value, "username")}
+                  onChange={(e)=>onChange(e.target.value, "email")}
                 />
               </Grid>
               <Grid item xs={12}>
