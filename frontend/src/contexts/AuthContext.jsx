@@ -15,8 +15,8 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("User:", user);
-  }, [])
+    localStorage.setItem("user", JSON.stringify(user));
+  }, [user])
   
 
   const register = async (userData) => {
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, register, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, user, setUser, register, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

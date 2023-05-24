@@ -111,6 +111,44 @@ const User = require( "../models/User.js");
 };
 
 
+const updateSettings = async (req, res) => {
+
+    const newSettings = req.body;
+    
+    console.log(newSettings)
+    const token = req.headers.authorization.split(" ")[1]; // Extract token= require( Authorization header
+
+    if(!token){
+        return res.status(400).json({error: "No Token Found"});
+    }
+    
+    //gets user ID from client's token
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+
+    
+    const userId = decodedToken.id;
+    
+    try {
+        const user = await User.findById(userId);
+    
+        if (!user) {
+          return res.status(400).json({ error: "No User Found" });
+        }
+
+        console.log("User:", user);
+    
+        user.preferences.darkMode = newSettings.darkMode;
+        const updatedUser = await user.save();
+    
+        res.status(200).json({ message: "Settings updated successfully", user: updatedUser });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+
+    };
+
 
  const verifyToken = (req, res, next) => {
     
@@ -128,4 +166,4 @@ const User = require( "../models/User.js");
     }
 }
 
-module.exports = {verifyToken, getUser, loginUser, registerUser}
+module.exports = {verifyToken, getUser, loginUser, registerUser, updateSettings}

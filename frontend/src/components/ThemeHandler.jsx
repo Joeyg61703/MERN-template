@@ -9,7 +9,8 @@ const ThemeHandler = ({children}) => {
 
     const {user} = useContext(AuthContext)
       
-    const isDarkMode = user ? user?.preferences?.darkMode : false;
+    console.log("Theme Handler", user);
+    const isDarkMode = user ? user.preferences.darkMode : false;
   return (
          <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
             {children}
